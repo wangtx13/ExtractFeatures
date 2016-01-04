@@ -11,6 +11,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,9 +33,11 @@ public class ExtractFeatures {
         String line_hroster = null;
         String line_hdb = null;
         HashMap<String, Pair<String, String>> hroster = new HashMap();
+        HashMap<String, Integer> totalAggValue_map = new HashMap();
         int[] pot = new int[4];
         String handCards = "";
         String tableCards = "";
+        String decisions = "";
 
         //hroster
         if (file_hroster.exists()) {
@@ -100,9 +103,12 @@ public class ExtractFeatures {
                                             BufferedReader reader_player = new BufferedReader(new InputStreamReader(in_player));
                                             InputStream in_against = new FileInputStream(file_against.getPath());
                                             BufferedReader reader_against = new BufferedReader(new InputStreamReader(in_against));) {
+                                        //save timestamp and actions for player
+                                        ArrayList<String[]> actions_list = new ArrayList();
+                                        int line_index = 0;
                                         while ((line_player = reader_player.readLine()) != null) {
                                             String[] split_player = line_player.split(" ");
-
+                                                                                       
                                             //put features except null into player_features
                                             String[] player_features = new String[13];
                                             int index_player = 0;
@@ -112,8 +118,16 @@ public class ExtractFeatures {
                                                     ++index_player;
                                                 }
                                             }
-
-                                            //player show the hand finally
+                                            
+                                            String actions = player_features[4] + player_features[5] + player_features[6] + player_features[7];
+                                            //timestamp，相应的玩家操作String
+                                            String[] oneAction = new String[2];
+                                            oneAction[0] = player_features[1];//timestamp
+                                            oneAction[1] = actions;//action
+                                            actions_list.add(oneAction);
+                                            
+                                            
+                                            //the round of player shows the hand finally
                                             if (player_features[11] != null && player_features[12] != null) {
                                                 //test
 //                                                for (String s : player_features) {
@@ -123,9 +137,9 @@ public class ExtractFeatures {
                                                 //find relevant player using timestamp
                                                 if (player_features[1].equals(split_hdb[0])) {
                                                     //test
-//                                                    for (String s : player_features) {
-//                                                        System.out.println(s);
-//                                                    }
+                                                    for (String s : player_features) {
+                                                        System.out.println(s);
+                                                    }
                                                     
                                                 }
 
@@ -163,6 +177,8 @@ public class ExtractFeatures {
 //                                                System.out.println(tableCards);
 
                                             }
+                                            //next line
+                                            ++line_index;
 
                                         }
                                         while ((line_against = reader_against.readLine()) != null) {
