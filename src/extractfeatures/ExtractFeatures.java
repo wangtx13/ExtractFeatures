@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.util.Pair;
@@ -33,11 +34,12 @@ public class ExtractFeatures {
         String line_hroster = null;
         String line_hdb = null;
         HashMap<String, Pair<String, String>> hroster = new HashMap();
-        HashMap<String, Integer> totalAggValue_map = new HashMap();
+        HashMap<String, Double> totalAggValue_map = new HashMap();//long term aggressive index
         int[] pot = new int[4];
         String handCards = "";
         String tableCards = "";
         String decisions = "";
+        double shortAggIndex = 0;//short term aggressive index
 
         //hroster
         if (file_hroster.exists()) {
@@ -86,8 +88,8 @@ public class ExtractFeatures {
                         if (hroster.containsKey(split_hdb[0])) {
                             String player = hroster.get(split_hdb[0]).getKey();
                             String against = hroster.get(split_hdb[0]).getValue();
-                            System.out.println(player);
-                            System.out.println(against);
+//                            System.out.println(player);
+//                            System.out.println(against);
 
                             //player and against file
                             File file_player = new File(filePath + "/pdb/pdb.test_" + player);
@@ -103,12 +105,14 @@ public class ExtractFeatures {
                                             BufferedReader reader_player = new BufferedReader(new InputStreamReader(in_player));
                                             InputStream in_against = new FileInputStream(file_against.getPath());
                                             BufferedReader reader_against = new BufferedReader(new InputStreamReader(in_against));) {
+
                                         //save timestamp and actions for player
                                         ArrayList<String[]> actions_list = new ArrayList();
                                         int line_index = 0;
+                                        ArrayList<Integer> needCalculateAgg = new ArrayList();
                                         while ((line_player = reader_player.readLine()) != null) {
                                             String[] split_player = line_player.split(" ");
-                                                                                       
+
                                             //put features except null into player_features
                                             String[] player_features = new String[13];
                                             int index_player = 0;
@@ -118,29 +122,26 @@ public class ExtractFeatures {
                                                     ++index_player;
                                                 }
                                             }
-                                            
+
                                             String actions = player_features[4] + player_features[5] + player_features[6] + player_features[7];
                                             //timestamp，相应的玩家操作String
                                             String[] oneAction = new String[2];
                                             oneAction[0] = player_features[1];//timestamp
                                             oneAction[1] = actions;//action
                                             actions_list.add(oneAction);
-                                            
-                                            
+//                                            System.out.println(actions_list.get(line_index)[0] + " " + actions_list.get(line_index)[1]);
+
                                             //the round of player shows the hand finally
                                             if (player_features[11] != null && player_features[12] != null) {
-                                                //test
-//                                                for (String s : player_features) {
-//                                                    System.out.println(s);
-//                                                }
-
-                                                //find relevant player using timestamp
+                                                //record index number where need to calculate the aggressive index
+                                                needCalculateAgg.add(line_index);
+                                                //find relevant player by timestamp
                                                 if (player_features[1].equals(split_hdb[0])) {
                                                     //test
-                                                    for (String s : player_features) {
-                                                        System.out.println(s);
-                                                    }
-                                                    
+//                                                    for (String s : player_features) {
+//                                                        System.out.println(s);
+//                                                    }
+
                                                 }
 
                                                 //put features except null into hdb_feature
@@ -181,6 +182,47 @@ public class ExtractFeatures {
                                             ++line_index;
 
                                         }
+
+                                        //calculate short term aggressive index
+                                        Iterator it_short = needCalculateAgg.iterator();
+                                        double tenAggIndex = 0;
+                                        while (it_short.hasNext()) {
+                                            for (int i = Integer.parseInt(String.valueOf(it_short.next())); i < actions_list.size() && i <= 10; ++i) {
+//                                                System.out.println(actions_list.get(i)[0] + " " + actions_list.get(i)[1]);
+                                                double aggIndex = calculateAggIndex(actions_list.get(i)[1]);
+                                                tenAggIndex += aggIndex;
+//                                                System.out.println(aggIndex);
+                                            }
+                                            shortAggIndex = tenAggIndex / 10;
+//                                            System.out.println(shortAggIndex);
+                                        }
+
+                                        //calculate long term aggressive index and save
+                                        double longAggIndex = 0;
+                                        double totalAggIndex = 0;
+                                        if (!totalAggValue_map.containsKey(player)) {
+//                                            Iterator it_long = actions_list.iterator();
+//                                            while (it_long.hasNext()) {
+//                                                String action_string = it_long.next().toString();
+//                                                System.out.println(action_string);
+//                                                double aggIndex = calculateAggIndex(action_string);
+//                                                System.out.println(aggIndex);
+//                                                totalAggIndex += aggIndex;
+//                                            }
+//                                            System.out.println(totalAggIndex);
+//                                            longAggIndex = totalAggIndex/actions_list.size();
+                                            for (int i = 0; i < actions_list.size(); ++i) {
+                                                double aggIndex = calculateAggIndex(actions_list.get(i)[1].toString());
+                                                totalAggIndex += aggIndex;
+                                            }
+                                            longAggIndex = totalAggIndex / actions_list.size();
+                                            System.out.println(actions_list.size());
+                                            if (!Double.isNaN(longAggIndex)) {
+                                                totalAggValue_map.put(player, longAggIndex);
+                                            }
+
+                                        }
+
                                         while ((line_against = reader_against.readLine()) != null) {
 
                                         }
@@ -204,6 +246,46 @@ public class ExtractFeatures {
             System.out.println(file_hdb.getName() + "doesn't exist");
         }
 
+    }
+
+    private double calculateAggIndex(String actions) {
+        double aggIndex = 0;
+        double total = 0;
+        char[] actions_char = actions.toCharArray();
+        for (char c : actions_char) {
+            switch (c) {
+                case 'f':
+                    ++total;
+                    break;
+                case 'k':
+                    ++total;
+                    break;
+                case 'c':
+                    ++total;
+                    aggIndex += 1;
+                    break;
+                case 'b':
+                    ++total;
+                    aggIndex += 1;
+                    break;
+                case 'B':
+                    ++total;
+                    aggIndex += 1;
+                    break;
+                case 'r':
+                    ++total;
+                    aggIndex += 2;
+                    break;
+                case 'A':
+                    ++total;
+                    aggIndex += 3;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        return aggIndex / total;
     }
 
 }
