@@ -17,6 +17,9 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.util.Pair;
+import texas.holdem.hand.evaluator.Hand;
+import texas.holdem.hand.evaluator.HandEvaluator;
+import texas.holdem.hand.evaluator.PotentialEvaluator;
 
 /**
  *
@@ -31,6 +34,8 @@ public class ExtractFeatures {
     private String tableCards;
     private String decisions;
     private double shortAggIndex;//short term aggressive index
+    private int currentValue;
+    private double potentialValue;
 
     public ExtractFeatures() {
     }
@@ -255,6 +260,21 @@ public class ExtractFeatures {
         }
         System.out.println(tableCards);
 
+        calculateHandValues(handCards, tableCards);
+        
+        System.out.println("Current Value: " + currentValue);
+        System.out.println("Potential Value: " + potentialValue);
+    }
+    
+    private void calculateHandValues(String _handCards, String _tableCards) {
+        String currentCards = "";
+        if(_tableCards!=null) {
+            currentCards = _handCards + " " + _tableCards;
+        }
+        HandEvaluator handEvaluator = new HandEvaluator(new Hand(currentCards));
+        PotentialEvaluator potEvaluator = new PotentialEvaluator(new Hand(currentCards));
+        currentValue = handEvaluator.getValue();
+        potentialValue = potEvaluator.getPotentialValue();
     }
 
     private double calculateAggIndex(String actions) {
