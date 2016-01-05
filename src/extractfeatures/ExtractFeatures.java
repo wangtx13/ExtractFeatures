@@ -101,8 +101,13 @@ public class ExtractFeatures {
 //                            String line_player = null;
 //                            String line_against = null;
 
-                            boolean emptyHand = extractInfoFromPlayer(file_player, split_hdb, relevantPlayer);
-                            if (!emptyHand) {
+                            boolean emptyHand_player = extractInfoFromPlayer(file_player, split_hdb, relevantPlayer);
+                            if (!emptyHand_player) {
+                                extractInfoFromHdb(split_hdb);
+                            }
+
+                            boolean emptyHand_against = extractInfoFromPlayer(file_against, split_hdb, relevantAgainst);
+                            if (!emptyHand_against) {
                                 extractInfoFromHdb(split_hdb);
                             }
                         }
@@ -154,14 +159,16 @@ public class ExtractFeatures {
                         oneAction[0] = player_features[1];//timestamp
                         oneAction[1] = actions;//action
                         actions_list.add(oneAction);
-//                                            System.out.println(actions_list.get(line_index)[0] + " " + actions_list.get(line_index)[1]);
+//                      System.out.println(actions_list.get(line_index)[0] + " " + actions_list.get(line_index)[1]);
 
-                        //the round of player shows the hand finally手牌不为空
-                        if (player_features[11] != null && player_features[12] != null) {
+                        //find relevant player by timestamp
+                        if (player_features[1].equals(split_hdb[0])) {
+                            //the round of player shows the hand finally手牌不为空
+                            if (player_features[11] != null && player_features[12] != null) {
+                                //要找的那一行手牌不为空
+                                emptyHand = false;
 
-                            emptyHand = false;
-                            //find relevant player by timestamp
-                            if (player_features[1].equals(split_hdb[0])) {
+                                System.out.println(player);
                                 decisions = actions;
                                 System.out.println("decisions: " + decisions);
                                 handCards = player_features[11] + " " + player_features[12];
@@ -176,12 +183,13 @@ public class ExtractFeatures {
 
                     }
 
-                    if (!actions_list.isEmpty()) {
+                    if (!actions_list.isEmpty() && !needCalculateAgg.isEmpty()) {
                         //calculate nedded short term aggressive index
                         Iterator it_short = needCalculateAgg.iterator();
                         double tenAggIndex = 0;
                         while (it_short.hasNext()) {
-                            for (int i = Integer.parseInt(String.valueOf(it_short.next())); i < actions_list.size() && i <= 10; ++i) {
+                            int index = Integer.parseInt(String.valueOf(it_short.next()));
+                            for (int i = index; i < actions_list.size() && i <= index + 10; ++i) {
 //                          System.out.println(actions_list.get(i)[0] + " " + actions_list.get(i)[1]);
                                 double aggIndex = calculateAggIndex(actions_list.get(i)[1]);
                                 tenAggIndex += aggIndex;
@@ -249,7 +257,7 @@ public class ExtractFeatures {
             System.out.println("pot:" + s);
         }
         //get table cards
-        if(hdb_features[8]!=null) {
+        if (hdb_features[8] != null) {
             tableCards = "";
         }
         for (int i = 8; i < 13 && hdb_features[i] != null; ++i) {
@@ -261,14 +269,15 @@ public class ExtractFeatures {
         System.out.println(tableCards);
 
         calculateHandValues(handCards, tableCards);
-        
+
         System.out.println("Current Value: " + currentValue);
         System.out.println("Potential Value: " + potentialValue);
+        System.out.println();
     }
-    
+
     private void calculateHandValues(String _handCards, String _tableCards) {
         String currentCards = "";
-        if(_tableCards!=null) {
+        if (_tableCards != null) {
             currentCards = _handCards + " " + _tableCards;
         }
         HandEvaluator handEvaluator = new HandEvaluator(new Hand(currentCards));
@@ -314,7 +323,11 @@ public class ExtractFeatures {
             }
         }
 
-        return aggIndex / total;
+        if (total == 0) {
+            return 0;
+        } else {
+            return aggIndex / total;
+        }
     }
 
 }
