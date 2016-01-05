@@ -6,7 +6,10 @@
 package extractfeatures;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import javafx.util.Pair;
 
 /**
@@ -20,9 +23,19 @@ public class Main {
      */
     public static void main(String[] args) {
         // TODO code application logic here
-        ExtractFeatures features = new ExtractFeatures();
-        features.ExtractedAllFeatures();
-                
+//        ExtractFeatures features = new ExtractFeatures();
+//        features.ExtractedAllFeatures();
+
+        
+        String inputRootFilePath = "./data";
+        File inputRootFile = new File(inputRootFilePath);
+        ArrayList<String> path = new ArrayList<>();
+        if (!inputRootFile.isDirectory()) {
+            System.out.println("Please input a extisted directory.");
+        } else {
+            TraversalFiles.fileList(inputRootFile, 0, path);
+        }
+
     }
-    
+
 }

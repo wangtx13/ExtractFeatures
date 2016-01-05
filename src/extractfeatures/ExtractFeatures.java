@@ -28,20 +28,35 @@ import texas.holdem.hand.evaluator.PotentialEvaluator;
 public class ExtractFeatures {
 
     private HashMap<String, Pair<String, String>> hroster = new HashMap();
-    private HashMap<String, Double> totalAggValue_map = new HashMap();//long term aggressive index
-    private int[] pot = new int[4];
-    private String handCards;
-    private String tableCards;
-    private String decisions;
-    private double shortAggIndex;//short term aggressive index
+    private HashMap<String, Double> totalAggValue_map = new HashMap();
+    private HashMap<String, Features> featuresFromOneSet = new HashMap();
+    private String name;
+    private String identify;
+    private int pot_flap;
+    private int pot_turn;
+    private int pot_river;
+//    private int pot_showdn;
+    private String handCards1;
+    private String handCards2;
+    private String tableCards1;
+    private String tableCards2;
+    private String tableCards3;
+    private String tableCards4;
+    private String tableCards5;
+    private String decision_pre;
+    private String decision_flap;
+    private String decision_turn;
+    private String decision_river;
+    private double shortAggIndex;
+    private double longAggIndex;
     private int currentValue;
     private double potentialValue;
 
     public ExtractFeatures() {
     }
 
-    public void ExtractedAllFeatures() {
-        String filePath = "./holdem/199504";
+    public HashMap<String, Features> ExtractedAllFeatures(String filePath) {
+//        String filePath = "./holdem/199504";
         File file_hroster = new File(filePath + "/hroster");
         File file_hdb = new File(filePath + "/hdb");
         String line_hroster = null;
@@ -55,18 +70,18 @@ public class ExtractFeatures {
                         BufferedReader reader_hroster = new BufferedReader(new InputStreamReader(in_hroster));) {
                     while ((line_hroster = reader_hroster.readLine()) != null) {
                         String[] split_hroster = line_hroster.split(" ");
-                        
+
                         String[] feature_hroster = new String[4];
                         int index_hroster = 0;
-                        for(int i = 0; i < split_hroster.length && index_hroster < 4; ++i) {
-                            if(!split_hroster[i].equals("")) {
+                        for (int i = 0; i < split_hroster.length && index_hroster < 4; ++i) {
+                            if (!split_hroster[i].equals("")) {
                                 feature_hroster[index_hroster] = split_hroster[i];
                                 ++index_hroster;
                             }
-                            
+
                         }
-                        
-                        String timestamp = "";
+
+                        String timestamp_hroster = "";
                         int playersNo = 0;
                         String player = "";
                         String against = "";
@@ -76,10 +91,10 @@ public class ExtractFeatures {
                         } else {
                             playersNo = Integer.parseInt(feature_hroster[1]);
                             if (playersNo == 2) {
-                                timestamp = feature_hroster[0];
+                                timestamp_hroster = feature_hroster[0];
                                 player = feature_hroster[2];
                                 against = feature_hroster[3];
-                                hroster.put(timestamp, new Pair(player, against));
+                                hroster.put(timestamp_hroster, new Pair(player, against));
                             }
                         }
                     }
@@ -112,15 +127,100 @@ public class ExtractFeatures {
 //                            String line_player = null;
 //                            String line_against = null;
 
+                            String currentCards = "";
+                            Features features = new Features();
                             boolean emptyHand_player = extractInfoFromPlayer(file_player, split_hdb, relevantPlayer);
                             if (!emptyHand_player) {
                                 extractInfoFromHdb(split_hdb);
+                                
+                                currentCards = tansforCards(handCards1 + " " + handCards2, null);
+                                currentValue = calculateCurretnValue(currentCards);
+                                potentialValue = calculatePotentialValue(currentCards);
+                                features = putIntoFeatures(handCards1, handCards2, null,
+                                        null, null, null, null, currentValue, potentialValue, 0, decision_pre);
+                                featuresFromOneSet.put(identify+"_pre", features);
+                                
+                                currentCards = tansforCards(handCards1 + " " + handCards2, 
+                                        tableCards1 + " " + tableCards2 + " " + tableCards3);
+                                currentValue = calculateCurretnValue(currentCards);
+                                potentialValue = calculatePotentialValue(currentCards);
+                                features = putIntoFeatures(handCards1, handCards2, tableCards1,
+                                        tableCards2, tableCards3, null, null,
+                                        currentValue, potentialValue, pot_flap, decision_flap);
+                                featuresFromOneSet.put(identify+"_flap", features);
+                                
+                                currentCards = tansforCards(handCards1 + " " + handCards2, 
+                                        tableCards1 + " " + tableCards2 + " " + tableCards3 + " " + tableCards4);
+                                currentValue = calculateCurretnValue(currentCards);
+                                potentialValue = calculatePotentialValue(currentCards);
+                                features = putIntoFeatures(handCards1, handCards2, tableCards1,
+                                        tableCards2, tableCards3, tableCards4, null,
+                                        currentValue, potentialValue, pot_turn, decision_turn);
+                                featuresFromOneSet.put(identify+"_turn", features);
+                                
+                                currentCards = tansforCards(handCards1 + " " + handCards2, 
+                                        tableCards1 + " " + tableCards2 + " " + tableCards3 + " " + tableCards4 + " " + tableCards5);
+                                currentValue = calculateCurretnValue(currentCards);
+                                potentialValue = calculatePotentialValue(currentCards);
+                                features = putIntoFeatures(handCards1, handCards2, tableCards1,
+                                        tableCards2, tableCards3, tableCards4, tableCards5,
+                                        currentValue, potentialValue, pot_river, decision_river);
+                                featuresFromOneSet.put(identify+"_river", features);
+
+//                                Iterator<Map.Entry<String, Features>> it = featuresFromOneSet.entrySet().iterator();
+//                                while (it.hasNext()) {
+//                                    Map.Entry<String, Features> entry = it.next();
+//                                    int[] test = new int[4];
+//                                            test = entry.getValue().getPot();
+//                                    System.out.println(test);
+//                                    for (int s : test) {
+//                                        System.out.println("pot:" + s);
+//                                    }
+//                                    System.out.println("t: " + entry.getValue().getTableCards());
+//                                }
+//                                System.out.println(featuresFromOneSet.get(identify));
                             }
 
                             boolean emptyHand_against = extractInfoFromPlayer(file_against, split_hdb, relevantAgainst);
                             if (!emptyHand_against) {
                                 extractInfoFromHdb(split_hdb);
+                                
+                                currentCards = tansforCards(handCards1 + " " + handCards2, null);
+                                currentValue = calculateCurretnValue(currentCards);
+                                potentialValue = calculatePotentialValue(currentCards);
+                                features = putIntoFeatures(handCards1, handCards2, null,
+                                        null, null, null, null, currentValue, potentialValue, 0, decision_pre);
+                                featuresFromOneSet.put(identify+"_pre", features);
+                                
+                                currentCards = tansforCards(handCards1 + " " + handCards2, 
+                                        tableCards1 + " " + tableCards2 + " " + tableCards3);
+                                currentValue = calculateCurretnValue(currentCards);
+                                potentialValue = calculatePotentialValue(currentCards);
+                                features = putIntoFeatures(handCards1, handCards2, tableCards1,
+                                        tableCards2, tableCards3, null, null,
+                                        currentValue, potentialValue, pot_flap, decision_flap);
+                                featuresFromOneSet.put(identify+"_flap", features);
+                                
+                                currentCards = tansforCards(handCards1 + " " + handCards2, 
+                                        tableCards1 + " " + tableCards2 + " " + tableCards3 + " " + tableCards4);
+                                currentValue = calculateCurretnValue(currentCards);
+                                potentialValue = calculatePotentialValue(currentCards);
+                                features = putIntoFeatures(handCards1, handCards2, tableCards1,
+                                        tableCards2, tableCards3, tableCards4, null,
+                                        currentValue, potentialValue, pot_turn, decision_turn);
+                                featuresFromOneSet.put(identify+"_turn", features);
+                                
+                                currentCards = tansforCards(handCards1 + " " + handCards2, 
+                                        tableCards1 + " " + tableCards2 + " " + tableCards3 + " " + tableCards4 + " " + tableCards5);
+                                currentValue = calculateCurretnValue(currentCards);
+                                potentialValue = calculatePotentialValue(currentCards);
+                                features = putIntoFeatures(handCards1, handCards2, tableCards1,
+                                        tableCards2, tableCards3, tableCards4, tableCards5,
+                                        currentValue, potentialValue, pot_river, decision_river);
+                                featuresFromOneSet.put(identify+"_river", features);
+
                             }
+
                         }
 
                     }
@@ -130,8 +230,25 @@ public class ExtractFeatures {
                 Logger.getLogger(ExtractFeatures.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else {
-            System.out.println(file_hdb.getName() + "doesn't exist");
+            System.out.println(file_hdb.getName() + " doesn't exist");
         }
+
+        //test
+//        System.out.println("Features: ");
+//        Iterator<Map.Entry<String, Features>> it = featuresFromOneSet.entrySet().iterator();
+//        while (it.hasNext()) {
+//            Map.Entry<String, Features> entry = it.next();
+//            System.out.println();
+//            System.out.println(entry.getKey());
+//            System.out.println("h: " + entry.getValue().getMyHand());
+//            System.out.println("t: " + entry.getValue().getTableCards());
+//            System.out.println("cv: " + entry.getValue().getCurrentValue());
+//            System.out.println("pv: " + entry.getValue().getPotentialValue());
+//            System.out.println("pot: " + entry.getValue().getPot());
+//            System.out.println("d: " + entry.getValue().getDecision());
+//        }
+        
+        return featuresFromOneSet;
 
     }
 
@@ -179,11 +296,18 @@ public class ExtractFeatures {
                                 //要找的那一行手牌不为空
                                 emptyHand = false;
 
-                                System.out.println(player);
-                                decisions = actions;
-                                System.out.println("decisions: " + decisions);
-                                handCards = player_features[11] + " " + player_features[12];
-                                System.out.println("handCards: " + handCards);
+                                name = player;
+                                identify = player_features[1] + "_" + player;
+//                                System.out.println(identify);
+//                                System.out.println(player);
+                                decision_pre = player_features[4];//pre flap
+                                decision_flap = player_features[5];//flap
+                                decision_turn = player_features[6];//turn
+                                decision_river = player_features[7];//river
+//                                System.out.println("decisions: " + decisions);
+                                handCards1 = player_features[11];
+                                handCards2 = player_features[12];
+//                                System.out.println("handCards: " + handCards);
                                 //record index number where need to calculate the aggressive index
                                 needCalculateAgg.add(line_index);
                             }
@@ -207,11 +331,11 @@ public class ExtractFeatures {
 //                          System.out.println(aggIndex);
                             }
                             shortAggIndex = tenAggIndex / 10;
-                            System.out.println("shortAggIndex: " + shortAggIndex);
+//                            System.out.println("shortAggIndex: " + shortAggIndex);
                         }
 
                         //calculate long term aggressive index and save
-                        double longAggIndex = 0;
+                        longAggIndex = 0;
                         double totalAggIndex = 0;
                         if (!totalAggValue_map.containsKey(player)) {
                             //Iterator??
@@ -221,12 +345,12 @@ public class ExtractFeatures {
                             }
                             longAggIndex = totalAggIndex / actions_list.size();
 //                                            System.out.println(actions_list.size());
-                            if (!Double.isNaN(longAggIndex)) {
-                                totalAggValue_map.put(player, longAggIndex);
-                            }
+                            totalAggValue_map.put(player, longAggIndex);
 
+                        } else {
+                            longAggIndex = totalAggValue_map.get(player);
                         }
-                        System.out.println("longAggIndex: " + totalAggValue_map.get(player));
+//                        System.out.println("longAggIndex: " + longAggIndex);
 
                     }
 
@@ -243,6 +367,7 @@ public class ExtractFeatures {
 
     private void extractInfoFromHdb(String[] split_hdb) {
 
+        //时间戳不变
         //put features except null into hdb_feature
         String[] hdb_features = new String[13];
         int index = 0;
@@ -253,48 +378,92 @@ public class ExtractFeatures {
             }
         }
 
+//        System.out.println();
+//        System.out.println(split_hdb[0]);
         //get pot size
-        String[] pot0 = hdb_features[4].split("/");
-        pot[0] = Integer.parseInt(pot0[pot0.length - 1]);
-        String[] pot1 = hdb_features[5].split("/");
-        pot[1] = Integer.parseInt(pot1[pot1.length - 1]);
-        String[] pot2 = hdb_features[6].split("/");
-        pot[2] = Integer.parseInt(pot2[pot2.length - 1]);
-        String[] pot3 = hdb_features[7].split("/");
-        pot[3] = Integer.parseInt(pot3[pot3.length - 1]);
+        String[] pot0Sr = hdb_features[4].split("/");
+        int p0 = Integer.parseInt(pot0Sr[pot0Sr.length - 1]);
+        pot_flap = p0; 
 
-        //test pot size                         
-        for (int s : pot) {
-            System.out.println("pot:" + s);
-        }
+        String[] pot1Sr = hdb_features[5].split("/");
+        int p1 = Integer.parseInt(pot1Sr[pot1Sr.length - 1]);
+        pot_turn = p1 - p0;     
+
+        String[] pot2Sr = hdb_features[6].split("/");
+        int p2 = Integer.parseInt(pot2Sr[pot2Sr.length - 1]);
+        pot_river = p2 - p1;
+
+//        String[] pot3Sr = hdb_features[7].split("/");
+//        int p3 = Integer.parseInt(pot3Sr[pot3Sr.length - 1]);
+//        pot_showdn = p3 - p2;
+
+        //test pot size   
+//        System.out.println(pot0);
+//        System.out.println(pot1);
+//        System.out.println(pot2);
+//        System.out.println(pot3);
+
         //get table cards
-        if (hdb_features[8] != null) {
-            tableCards = "";
-        }
-        for (int i = 8; i < 13 && hdb_features[i] != null; ++i) {
-            tableCards += hdb_features[i];
-            if (i < 12) {
-                tableCards += " ";
-            }
-        }
-        System.out.println(tableCards);
+        tableCards1 = hdb_features[8];
+        tableCards2 = hdb_features[9];
+        tableCards3 = hdb_features[10];
+        tableCards4 = hdb_features[11];
+        tableCards5 = hdb_features[12];
 
-        calculateHandValues(handCards, tableCards);
+//        System.out.println(tableCards);
 
-        System.out.println("Current Value: " + currentValue);
-        System.out.println("Potential Value: " + potentialValue);
-        System.out.println();
+
     }
-
-    private void calculateHandValues(String _handCards, String _tableCards) {
+    
+//    private String[] splitDecision(String c1, String c2, String c3, String decision) {
+//        String[] s = new String[3];
+//        switch (decision.length()) {
+//            case 1:
+//                c1 = String.valueOf(decision.charAt(0));
+//                c2 = null;
+//                c3 = null;
+//                break;
+//            case 2:
+//                c1 = String.valueOf(decision.charAt(0));
+//                c2 = String.valueOf(decision.charAt(1));
+//                c3 = null;
+//                break;
+//            case 3:
+//                c1 = String.valueOf(decision.charAt(0));
+//                c2 = String.valueOf(decision.charAt(1));
+//                c3 = String.valueOf(decision.charAt(2));
+//                break;
+//            default:
+//                break;
+//        }
+//        s[0] = c1;
+//        s[1] = c2;
+//        s[2] = c3;
+//        return s;
+//    }
+    
+    private String tansforCards(String _handCards, String _tableCards) {
         String currentCards = "";
         if (_tableCards != null) {
             currentCards = _handCards + " " + _tableCards;
+        } else {
+            currentCards = _handCards;
         }
-        HandEvaluator handEvaluator = new HandEvaluator(new Hand(currentCards));
+        return currentCards;
+    }
+
+    private int calculateCurretnValue(String currentCards) {
+        int value = 0;
+        HandEvaluator handEvaluator = new HandEvaluator(new Hand(currentCards));     
+        value = handEvaluator.getValue();
+        return value;
+    }
+    
+    private double calculatePotentialValue(String currentCards) {
+        double value = 0;
         PotentialEvaluator potEvaluator = new PotentialEvaluator(new Hand(currentCards));
-        currentValue = handEvaluator.getValue();
-        potentialValue = potEvaluator.getPotentialValue();
+        value = potEvaluator.getPotentialValue();
+        return value;
     }
 
     private double calculateAggIndex(String actions) {
@@ -339,6 +508,27 @@ public class ExtractFeatures {
         } else {
             return aggIndex / total;
         }
+    }
+
+    private Features putIntoFeatures(String h1, String h2, String t1, String t2, 
+            String t3, String t4, String t5, int cv, double pv, int pot, 
+            String d) {
+        Features features = new Features();
+        features.setName(name);
+        features.setMyHand1(h1);
+        features.setMyHand2(h2);
+        features.setTableCards1(t1);
+        features.setTableCards2(t2);
+        features.setTableCards3(t3);
+        features.setTableCards4(t4);
+        features.setTableCards5(t5);
+        features.setCurrentValue(cv);
+        features.setPotentialValue(pv);
+        features.setShortAggIndex(shortAggIndex);
+        features.setLongAggIndex(longAggIndex);
+        features.setPot(pot);
+        features.setDecision(d);
+        return features;
     }
 
 }
