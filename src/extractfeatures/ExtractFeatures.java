@@ -42,8 +42,8 @@ public class ExtractFeatures {
 
     public void ExtractedAllFeatures() {
         String filePath = "./holdem/199504";
-        File file_hroster = new File(filePath + "/test_hroster");
-        File file_hdb = new File(filePath + "/test_hdb");
+        File file_hroster = new File(filePath + "/hroster");
+        File file_hdb = new File(filePath + "/hdb");
         String line_hroster = null;
         String line_hdb = null;
 
@@ -55,6 +55,17 @@ public class ExtractFeatures {
                         BufferedReader reader_hroster = new BufferedReader(new InputStreamReader(in_hroster));) {
                     while ((line_hroster = reader_hroster.readLine()) != null) {
                         String[] split_hroster = line_hroster.split(" ");
+                        
+                        String[] feature_hroster = new String[4];
+                        int index_hroster = 0;
+                        for(int i = 0; i < split_hroster.length && index_hroster < 4; ++i) {
+                            if(!split_hroster[i].equals("")) {
+                                feature_hroster[index_hroster] = split_hroster[i];
+                                ++index_hroster;
+                            }
+                            
+                        }
+                        
                         String timestamp = "";
                         int playersNo = 0;
                         String player = "";
@@ -63,11 +74,11 @@ public class ExtractFeatures {
                         if (split_hroster.length < 5) {
                             System.out.println("Wrong line.");
                         } else {
-                            playersNo = Integer.parseInt(split_hroster[2]);
+                            playersNo = Integer.parseInt(feature_hroster[1]);
                             if (playersNo == 2) {
-                                timestamp = split_hroster[0];
-                                player = split_hroster[3];
-                                against = split_hroster[4];
+                                timestamp = feature_hroster[0];
+                                player = feature_hroster[2];
+                                against = feature_hroster[3];
                                 hroster.put(timestamp, new Pair(player, against));
                             }
                         }
@@ -96,8 +107,8 @@ public class ExtractFeatures {
                             String relevantAgainst = hroster.get(split_hdb[0]).getValue();
 
                             //player and against file
-                            File file_player = new File(filePath + "/pdb/pdb.test_" + relevantPlayer);
-                            File file_against = new File(filePath + "/pdb/pdb.test_" + relevantAgainst);
+                            File file_player = new File(filePath + "/pdb/pdb." + relevantPlayer);
+                            File file_against = new File(filePath + "/pdb/pdb." + relevantAgainst);
 //                            String line_player = null;
 //                            String line_against = null;
 
