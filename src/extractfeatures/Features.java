@@ -24,6 +24,7 @@ public class Features {
     private double shortAggIndex;
     private double longAggIndex;
     private int pot;
+    private int cost;
     private String decision;
 
     public Features() {
@@ -131,6 +132,14 @@ public class Features {
 
     public void setPot(int pot) {
         this.pot = pot;
+    }
+    
+    public int getCost() {
+        return cost;
+    }
+
+    public void setCost(int cost) {
+        this.cost = cost;
     }
 
     public String getDecision() {

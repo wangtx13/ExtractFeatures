@@ -69,6 +69,7 @@ public class WriteFeatures {
             double shortAggIndex = features.getShortAggIndex();
             double longAggIndex = features.getLongAggIndex();
             int pot = features.getPot();
+            int cost = features.getCost();
             String decision = features.getDecision();
 
             allFeatures.append(name);
@@ -97,6 +98,8 @@ public class WriteFeatures {
             allFeatures.append(" ");
             allFeatures.append(pot);
             allFeatures.append(" ");
+            allFeatures.append(cost);
+            allFeatures.append(" ");
             allFeatures.append(decision);
             allFeatures.append("\n");
 
@@ -114,14 +117,4 @@ public class WriteFeatures {
 
     }
 
-    private int calculateCurrentValue(String cards) {
-        HandEvaluator handEvaluator = new HandEvaluator(new Hand(cards));
-        return handEvaluator.getValue();
-
-    }
-
-    private double calculatePotValue(String cards) {
-        PotentialEvaluator potEvaluator = new PotentialEvaluator(new Hand(cards));
-        return potEvaluator.getPotentialValue();
-    }
 }

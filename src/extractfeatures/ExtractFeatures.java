@@ -32,6 +32,9 @@ public class ExtractFeatures {
     private HashMap<String, Features> featuresFromOneSet = new HashMap();
     private String name;
     private String identify;
+    private int cost_flap;
+    private int cost_turn;
+    private int cost_river;
     private int pot_flap;
     private int pot_turn;
     private int pot_river;
@@ -89,7 +92,12 @@ public class ExtractFeatures {
                         if (split_hroster.length < 5) {
                             System.out.println("Wrong line.");
                         } else {
-                            playersNo = Integer.parseInt(feature_hroster[1]);
+                            
+                            if(feature_hroster[1].length() < 4) {
+                                playersNo = Integer.parseInt(feature_hroster[1]);
+                            }
+//                            System.out.println(feature_hroster[1]);
+//                            System.out.println(playersNo);
                             if (playersNo == 2) {
                                 timestamp_hroster = feature_hroster[0];
                                 player = feature_hroster[2];
@@ -137,7 +145,7 @@ public class ExtractFeatures {
                                 currentValue = calculateCurretnValue(currentCards);
                                 potentialValue = calculatePotentialValue(currentCards);
                                 features = putIntoFeatures(handCards1, handCards2, null,
-                                        null, null, null, null, currentValue, potentialValue, 0, decision_pre);
+                                        null, null, null, null, currentValue, potentialValue, 0, 0, decision_pre);
                                 featuresFromOneSet.put(identify+"_pre", features);
                                 
                                 currentCards = tansforCards(handCards1 + " " + handCards2, 
@@ -146,7 +154,7 @@ public class ExtractFeatures {
                                 potentialValue = calculatePotentialValue(currentCards);
                                 features = putIntoFeatures(handCards1, handCards2, tableCards1,
                                         tableCards2, tableCards3, null, null,
-                                        currentValue, potentialValue, pot_flap, decision_flap);
+                                        currentValue, potentialValue, pot_flap, cost_flap, decision_flap);
                                 featuresFromOneSet.put(identify+"_flap", features);
                                 
                                 currentCards = tansforCards(handCards1 + " " + handCards2, 
@@ -155,7 +163,7 @@ public class ExtractFeatures {
                                 potentialValue = calculatePotentialValue(currentCards);
                                 features = putIntoFeatures(handCards1, handCards2, tableCards1,
                                         tableCards2, tableCards3, tableCards4, null,
-                                        currentValue, potentialValue, pot_turn, decision_turn);
+                                        currentValue, potentialValue, pot_turn, cost_turn, decision_turn);
                                 featuresFromOneSet.put(identify+"_turn", features);
                                 
                                 currentCards = tansforCards(handCards1 + " " + handCards2, 
@@ -164,7 +172,7 @@ public class ExtractFeatures {
                                 potentialValue = calculatePotentialValue(currentCards);
                                 features = putIntoFeatures(handCards1, handCards2, tableCards1,
                                         tableCards2, tableCards3, tableCards4, tableCards5,
-                                        currentValue, potentialValue, pot_river, decision_river);
+                                        currentValue, potentialValue, pot_river, cost_river, decision_river);
                                 featuresFromOneSet.put(identify+"_river", features);
 
 //                                Iterator<Map.Entry<String, Features>> it = featuresFromOneSet.entrySet().iterator();
@@ -189,7 +197,7 @@ public class ExtractFeatures {
                                 currentValue = calculateCurretnValue(currentCards);
                                 potentialValue = calculatePotentialValue(currentCards);
                                 features = putIntoFeatures(handCards1, handCards2, null,
-                                        null, null, null, null, currentValue, potentialValue, 0, decision_pre);
+                                        null, null, null, null, currentValue, potentialValue, 0, 0, decision_pre);
                                 featuresFromOneSet.put(identify+"_pre", features);
                                 
                                 currentCards = tansforCards(handCards1 + " " + handCards2, 
@@ -198,7 +206,7 @@ public class ExtractFeatures {
                                 potentialValue = calculatePotentialValue(currentCards);
                                 features = putIntoFeatures(handCards1, handCards2, tableCards1,
                                         tableCards2, tableCards3, null, null,
-                                        currentValue, potentialValue, pot_flap, decision_flap);
+                                        currentValue, potentialValue, pot_flap, cost_flap, decision_flap);
                                 featuresFromOneSet.put(identify+"_flap", features);
                                 
                                 currentCards = tansforCards(handCards1 + " " + handCards2, 
@@ -207,7 +215,7 @@ public class ExtractFeatures {
                                 potentialValue = calculatePotentialValue(currentCards);
                                 features = putIntoFeatures(handCards1, handCards2, tableCards1,
                                         tableCards2, tableCards3, tableCards4, null,
-                                        currentValue, potentialValue, pot_turn, decision_turn);
+                                        currentValue, potentialValue, pot_turn, cost_turn, decision_turn);
                                 featuresFromOneSet.put(identify+"_turn", features);
                                 
                                 currentCards = tansforCards(handCards1 + " " + handCards2, 
@@ -216,7 +224,7 @@ public class ExtractFeatures {
                                 potentialValue = calculatePotentialValue(currentCards);
                                 features = putIntoFeatures(handCards1, handCards2, tableCards1,
                                         tableCards2, tableCards3, tableCards4, tableCards5,
-                                        currentValue, potentialValue, pot_river, decision_river);
+                                        currentValue, potentialValue, pot_river, cost_river, decision_river);
                                 featuresFromOneSet.put(identify+"_river", features);
 
                             }
@@ -382,26 +390,30 @@ public class ExtractFeatures {
 //        System.out.println(split_hdb[0]);
         //get pot size
         String[] pot0Sr = hdb_features[4].split("/");
-        int p0 = Integer.parseInt(pot0Sr[pot0Sr.length - 1]);
-        pot_flap = p0; 
+        pot_flap = Integer.parseInt(pot0Sr[pot0Sr.length - 1]);
+        cost_flap = pot_flap; 
 
         String[] pot1Sr = hdb_features[5].split("/");
-        int p1 = Integer.parseInt(pot1Sr[pot1Sr.length - 1]);
-        pot_turn = p1 - p0;     
+        pot_turn = Integer.parseInt(pot1Sr[pot1Sr.length - 1]);
+        cost_turn = pot_turn - pot_flap;     
 
         String[] pot2Sr = hdb_features[6].split("/");
-        int p2 = Integer.parseInt(pot2Sr[pot2Sr.length - 1]);
-        pot_river = p2 - p1;
+        pot_river = Integer.parseInt(pot2Sr[pot2Sr.length - 1]);
+        cost_river = pot_river - pot_turn;
 
 //        String[] pot3Sr = hdb_features[7].split("/");
 //        int p3 = Integer.parseInt(pot3Sr[pot3Sr.length - 1]);
 //        pot_showdn = p3 - p2;
 
         //test pot size   
-//        System.out.println(pot0);
-//        System.out.println(pot1);
-//        System.out.println(pot2);
+//        System.out.println(pot_flap);
+//        System.out.println(pot_turn);
+//        System.out.println(pot_river);
 //        System.out.println(pot3);
+        //test cost
+//        System.out.println(cost_flap);
+//        System.out.println(cost_turn);
+//        System.out.println(cost_river);
 
         //get table cards
         tableCards1 = hdb_features[8];
@@ -511,7 +523,7 @@ public class ExtractFeatures {
     }
 
     private Features putIntoFeatures(String h1, String h2, String t1, String t2, 
-            String t3, String t4, String t5, int cv, double pv, int pot, 
+            String t3, String t4, String t5, int cv, double pv, int pot, int cost, 
             String d) {
         Features features = new Features();
         features.setName(name);
@@ -527,6 +539,7 @@ public class ExtractFeatures {
         features.setShortAggIndex(shortAggIndex);
         features.setLongAggIndex(longAggIndex);
         features.setPot(pot);
+        features.setCost(cost);
         features.setDecision(d);
         return features;
     }
