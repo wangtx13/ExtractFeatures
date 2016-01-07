@@ -32,7 +32,7 @@ public class WriteFeatures {
         String[] split_originalPath = originalPath.split("/");
         String fileName = split_originalPath[split_originalPath.length - 2] + "_"
                 + split_originalPath[split_originalPath.length - 1];
-        String extractedFilePath = "./output/" + fileName + ".txt";
+        String extractedFilePath = "./b_output/" + fileName + ".txt";
 
         //create output file for extracted comments
         File extractedFeaturesFile = new File(extractedFilePath);

@@ -62,6 +62,10 @@ public class ExtractFeatures {
 //        String filePath = "./holdem/199504";
         File file_hroster = new File(filePath + "/hroster");
         File file_hdb = new File(filePath + "/hdb");
+
+        String[] split_originalPath = filePath.split("/");
+        String className = split_originalPath[split_originalPath.length - 2];
+
         String line_hroster = null;
         String line_hdb = null;
 
@@ -90,10 +94,10 @@ public class ExtractFeatures {
                         String against = "";
 
                         if (split_hroster.length < 5) {
-                            System.out.println("Wrong line.");
+                            System.out.println(" Wrong line: " + line_hroster);
                         } else {
-                            
-                            if(feature_hroster[1].length() < 4) {
+
+                            if (feature_hroster[1].length() < 4) {
                                 playersNo = Integer.parseInt(feature_hroster[1]);
                             }
 //                            System.out.println(feature_hroster[1]);
@@ -113,7 +117,7 @@ public class ExtractFeatures {
             }
 
         } else {
-            System.out.println(file_hroster.getName() + " doesn't exist");
+            System.out.println(" " + file_hroster.getName() + " doesn't exist");
         }
 
         //hdb
@@ -140,40 +144,71 @@ public class ExtractFeatures {
                             boolean emptyHand_player = extractInfoFromPlayer(file_player, split_hdb, relevantPlayer);
                             if (!emptyHand_player) {
                                 extractInfoFromHdb(split_hdb);
-                                
+
+                                int pot0 = calculatePot0(className);
                                 currentCards = tansforCards(handCards1 + " " + handCards2, null);
                                 currentValue = calculateCurretnValue(currentCards);
                                 potentialValue = calculatePotentialValue(currentCards);
                                 features = putIntoFeatures(handCards1, handCards2, null,
-                                        null, null, null, null, currentValue, potentialValue, 0, 0, decision_pre);
-                                featuresFromOneSet.put(identify+"_pre", features);
-                                
-                                currentCards = tansforCards(handCards1 + " " + handCards2, 
+                                        null, null, null, null, currentValue, potentialValue, pot0, 0, decision_pre);
+                                featuresFromOneSet.put(identify + "_pre", features);
+
+                                currentCards = tansforCards(handCards1 + " " + handCards2,
                                         tableCards1 + " " + tableCards2 + " " + tableCards3);
                                 currentValue = calculateCurretnValue(currentCards);
                                 potentialValue = calculatePotentialValue(currentCards);
+                                //10-20post_flap和cost_flap无变化
+                                //20-40
+//                                pot_flap = pot_flap / 2;
+//                                cost_flap = cost_flap / 2;
+                                //50-100
+                                //20-40
+//                                pot_flap = pot_flap/5;
+//                                cost_flap = cost_flap/5;
+                                pot_flap = calculatePotAndCost(className, pot_flap);
+                                cost_flap = calculatePotAndCost(className, cost_flap);
                                 features = putIntoFeatures(handCards1, handCards2, tableCards1,
                                         tableCards2, tableCards3, null, null,
                                         currentValue, potentialValue, pot_flap, cost_flap, decision_flap);
-                                featuresFromOneSet.put(identify+"_flap", features);
-                                
-                                currentCards = tansforCards(handCards1 + " " + handCards2, 
+                                featuresFromOneSet.put(identify + "_flap", features);
+
+                                currentCards = tansforCards(handCards1 + " " + handCards2,
                                         tableCards1 + " " + tableCards2 + " " + tableCards3 + " " + tableCards4);
                                 currentValue = calculateCurretnValue(currentCards);
                                 potentialValue = calculatePotentialValue(currentCards);
+                                //10-20post_turn和cost_turn无变化
+                                //20-40
+//                                pot_turn = pot_turn/2;
+//                                cost_turn = cost_turn/2;
+                                //50-100
+                                //20-40
+//                                pot_turn = pot_turn/5;
+//                                cost_turn = cost_turn/5;
+                                pot_turn = calculatePotAndCost(className, pot_turn);
+                                cost_turn = calculatePotAndCost(className, cost_turn);
                                 features = putIntoFeatures(handCards1, handCards2, tableCards1,
                                         tableCards2, tableCards3, tableCards4, null,
                                         currentValue, potentialValue, pot_turn, cost_turn, decision_turn);
-                                featuresFromOneSet.put(identify+"_turn", features);
-                                
-                                currentCards = tansforCards(handCards1 + " " + handCards2, 
+                                featuresFromOneSet.put(identify + "_turn", features);
+
+                                currentCards = tansforCards(handCards1 + " " + handCards2,
                                         tableCards1 + " " + tableCards2 + " " + tableCards3 + " " + tableCards4 + " " + tableCards5);
                                 currentValue = calculateCurretnValue(currentCards);
                                 potentialValue = calculatePotentialValue(currentCards);
+                                //10-20post_river和cost_river无变化
+                                //20-40
+//                                pot_river = pot_river / 2;
+//                                cost_river = cost_river / 2;
+                                //50-100
+                                //20-40
+//                                pot_turn = pot_turn/5;
+//                                cost_turn = cost_turn/5;
+                                pot_river = calculatePotAndCost(className, pot_river);
+                                cost_river = calculatePotAndCost(className, cost_river);
                                 features = putIntoFeatures(handCards1, handCards2, tableCards1,
                                         tableCards2, tableCards3, tableCards4, tableCards5,
                                         currentValue, potentialValue, pot_river, cost_river, decision_river);
-                                featuresFromOneSet.put(identify+"_river", features);
+                                featuresFromOneSet.put(identify + "_river", features);
 
 //                                Iterator<Map.Entry<String, Features>> it = featuresFromOneSet.entrySet().iterator();
 //                                while (it.hasNext()) {
@@ -192,40 +227,71 @@ public class ExtractFeatures {
                             boolean emptyHand_against = extractInfoFromPlayer(file_against, split_hdb, relevantAgainst);
                             if (!emptyHand_against) {
                                 extractInfoFromHdb(split_hdb);
-                                
+
+                                int pot0 = calculatePot0(className);
                                 currentCards = tansforCards(handCards1 + " " + handCards2, null);
                                 currentValue = calculateCurretnValue(currentCards);
                                 potentialValue = calculatePotentialValue(currentCards);
                                 features = putIntoFeatures(handCards1, handCards2, null,
-                                        null, null, null, null, currentValue, potentialValue, 0, 0, decision_pre);
-                                featuresFromOneSet.put(identify+"_pre", features);
-                                
-                                currentCards = tansforCards(handCards1 + " " + handCards2, 
+                                        null, null, null, null, currentValue, potentialValue, pot0, 0, decision_pre);
+                                featuresFromOneSet.put(identify + "_pre", features);
+
+                                currentCards = tansforCards(handCards1 + " " + handCards2,
                                         tableCards1 + " " + tableCards2 + " " + tableCards3);
                                 currentValue = calculateCurretnValue(currentCards);
                                 potentialValue = calculatePotentialValue(currentCards);
+                                //10-20post_flap和cost_flap无变化
+                                //20-40
+//                                pot_flap = pot_flap / 2;
+//                                cost_flap = cost_flap / 2;
+                                //50-100
+                                //20-40
+//                                pot_flap = pot_flap/5;
+//                                cost_flap = cost_flap/5;
+                                pot_flap = calculatePotAndCost(className, pot_flap);
+                                cost_flap = calculatePotAndCost(className, cost_flap);
                                 features = putIntoFeatures(handCards1, handCards2, tableCards1,
                                         tableCards2, tableCards3, null, null,
                                         currentValue, potentialValue, pot_flap, cost_flap, decision_flap);
-                                featuresFromOneSet.put(identify+"_flap", features);
-                                
-                                currentCards = tansforCards(handCards1 + " " + handCards2, 
+                                featuresFromOneSet.put(identify + "_flap", features);
+
+                                currentCards = tansforCards(handCards1 + " " + handCards2,
                                         tableCards1 + " " + tableCards2 + " " + tableCards3 + " " + tableCards4);
                                 currentValue = calculateCurretnValue(currentCards);
                                 potentialValue = calculatePotentialValue(currentCards);
+                                //10-20post_turn和cost_turn无变化
+                                //20-40
+//                                pot_turn = pot_turn / 2;
+//                                cost_turn = cost_turn / 2;
+                                //50-100
+                                //20-40
+//                                pot_turn = pot_turn/5;
+//                                cost_turn = cost_turn/5;
+                                pot_turn = calculatePotAndCost(className, pot_turn);
+                                cost_turn = calculatePotAndCost(className, cost_turn);
                                 features = putIntoFeatures(handCards1, handCards2, tableCards1,
                                         tableCards2, tableCards3, tableCards4, null,
                                         currentValue, potentialValue, pot_turn, cost_turn, decision_turn);
-                                featuresFromOneSet.put(identify+"_turn", features);
-                                
-                                currentCards = tansforCards(handCards1 + " " + handCards2, 
+                                featuresFromOneSet.put(identify + "_turn", features);
+
+                                currentCards = tansforCards(handCards1 + " " + handCards2,
                                         tableCards1 + " " + tableCards2 + " " + tableCards3 + " " + tableCards4 + " " + tableCards5);
                                 currentValue = calculateCurretnValue(currentCards);
                                 potentialValue = calculatePotentialValue(currentCards);
+                                //10-20post_river和cost_river无变化
+                                //20-40
+//                                pot_river = pot_river / 2;
+//                                cost_river = cost_river / 2;
+                                //50-100
+                                //20-40
+//                                pot_turn = pot_turn/5;
+//                                cost_turn = cost_turn/5;
+                                pot_river = calculatePotAndCost(className, pot_river);
+                                cost_river = calculatePotAndCost(className, cost_river);
                                 features = putIntoFeatures(handCards1, handCards2, tableCards1,
                                         tableCards2, tableCards3, tableCards4, tableCards5,
                                         currentValue, potentialValue, pot_river, cost_river, decision_river);
-                                featuresFromOneSet.put(identify+"_river", features);
+                                featuresFromOneSet.put(identify + "_river", features);
 
                             }
 
@@ -238,7 +304,7 @@ public class ExtractFeatures {
                 Logger.getLogger(ExtractFeatures.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else {
-            System.out.println(file_hdb.getName() + " doesn't exist");
+            System.out.println(" " + file_hdb.getName() + " doesn't exist");
         }
 
         //test
@@ -255,7 +321,6 @@ public class ExtractFeatures {
 //            System.out.println("pot: " + entry.getValue().getPot());
 //            System.out.println("d: " + entry.getValue().getDecision());
 //        }
-        
         return featuresFromOneSet;
 
     }
@@ -282,11 +347,16 @@ public class ExtractFeatures {
                         int index_player = 0;
                         for (String s : split_player) {
                             if (!s.equals("")) {
-                                player_features[index_player] = s;
-                                ++index_player;
+                                if (index_player < 13) {
+//                                    System.out.println(s);
+                                    player_features[index_player] = s;
+                                    ++index_player;
+//                                } else {
+//                                    System.out.println(line_player);
+                                }
                             }
                         }
-
+                        
                         //玩家的操作，也就是决定
                         String actions = player_features[4] + " " + player_features[5] + " " + player_features[6] + " " + player_features[7];
 
@@ -297,8 +367,8 @@ public class ExtractFeatures {
                         actions_list.add(oneAction);
 //                      System.out.println(actions_list.get(line_index)[0] + " " + actions_list.get(line_index)[1]);
 
-                        //find relevant player by timestamp
-                        if (player_features[1].equals(split_hdb[0])) {
+                        //find relevant player by timestamp                     
+                        if (player_features[1]!=null && player_features[1].equals(split_hdb[0])) {
                             //the round of player shows the hand finally手牌不为空
                             if (player_features[11] != null && player_features[12] != null) {
                                 //要找的那一行手牌不为空
@@ -367,7 +437,7 @@ public class ExtractFeatures {
                 Logger.getLogger(ExtractFeatures.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else {
-            System.out.println(file.getName() + " doesn't exist");
+            System.out.println(" " + file.getName() + " doesn't exist");
         }
 
         return emptyHand;
@@ -391,11 +461,11 @@ public class ExtractFeatures {
         //get pot size
         String[] pot0Sr = hdb_features[4].split("/");
         pot_flap = Integer.parseInt(pot0Sr[pot0Sr.length - 1]);
-        cost_flap = pot_flap; 
+        cost_flap = pot_flap;
 
         String[] pot1Sr = hdb_features[5].split("/");
         pot_turn = Integer.parseInt(pot1Sr[pot1Sr.length - 1]);
-        cost_turn = pot_turn - pot_flap;     
+        cost_turn = pot_turn - pot_flap;
 
         String[] pot2Sr = hdb_features[6].split("/");
         pot_river = Integer.parseInt(pot2Sr[pot2Sr.length - 1]);
@@ -404,7 +474,6 @@ public class ExtractFeatures {
 //        String[] pot3Sr = hdb_features[7].split("/");
 //        int p3 = Integer.parseInt(pot3Sr[pot3Sr.length - 1]);
 //        pot_showdn = p3 - p2;
-
         //test pot size   
 //        System.out.println(pot_flap);
 //        System.out.println(pot_turn);
@@ -414,7 +483,6 @@ public class ExtractFeatures {
 //        System.out.println(cost_flap);
 //        System.out.println(cost_turn);
 //        System.out.println(cost_river);
-
         //get table cards
         tableCards1 = hdb_features[8];
         tableCards2 = hdb_features[9];
@@ -423,10 +491,8 @@ public class ExtractFeatures {
         tableCards5 = hdb_features[12];
 
 //        System.out.println(tableCards);
-
-
     }
-    
+
 //    private String[] splitDecision(String c1, String c2, String c3, String decision) {
 //        String[] s = new String[3];
 //        switch (decision.length()) {
@@ -453,7 +519,6 @@ public class ExtractFeatures {
 //        s[2] = c3;
 //        return s;
 //    }
-    
     private String tansforCards(String _handCards, String _tableCards) {
         String currentCards = "";
         if (_tableCards != null) {
@@ -466,11 +531,11 @@ public class ExtractFeatures {
 
     private int calculateCurretnValue(String currentCards) {
         int value = 0;
-        HandEvaluator handEvaluator = new HandEvaluator(new Hand(currentCards));     
+        HandEvaluator handEvaluator = new HandEvaluator(new Hand(currentCards));
         value = handEvaluator.getValue();
         return value;
     }
-    
+
     private double calculatePotentialValue(String currentCards) {
         double value = 0;
         PotentialEvaluator potEvaluator = new PotentialEvaluator(new Hand(currentCards));
@@ -522,8 +587,54 @@ public class ExtractFeatures {
         }
     }
 
-    private Features putIntoFeatures(String h1, String h2, String t1, String t2, 
-            String t3, String t4, String t5, int cv, double pv, int pot, int cost, 
+    private int calculatePot0(String className) {
+        switch (className) {
+            case "holdem2":
+            case "a_test":
+                return 10 + 20;
+            case "holdem3":
+                return 25 + 50;
+            default:
+                return 5 + 10;
+        }
+    }
+
+    private int calculatePotAndCost(String className, int input) {
+        switch (className) {
+            case "holdem2":
+            case "a_test":
+                return input / 2;
+            case "holdem3":
+                return input / 3;
+            default:
+                return input;
+        }
+    }
+
+    //若包含fold则保留f
+    //若未弃牌，且包含All-in，则保留A
+    //若未弃牌、未All-in，且包含bet或raise，则保留r
+    //若未弃牌、未All-in、未bet或raise，且包含call，则保留c
+    //若未弃牌、未All-in、未bet或raise、未call，且包含check，则保留c
+    //若未弃牌、未All-in、未bet或raise、未call、未check，则取最后一个决策
+    private String extractDecision(String d) {
+        if (d.contains("f")) {
+            return "f";
+        } else if (d.contains("A")) {
+            return "A";
+        } else if (d.contains("b") || d.contains("r")) {
+            return "r";
+        } else if (d.contains("c")) {
+            return "c";
+        } else if (d.contains("k")) {
+            return "k";
+        } else {
+            return d.substring(d.length() - 1, d.length());
+        }
+    }
+
+    private Features putIntoFeatures(String h1, String h2, String t1, String t2,
+            String t3, String t4, String t5, int cv, double pv, int pot, int cost,
             String d) {
         Features features = new Features();
         features.setName(name);
@@ -540,7 +651,7 @@ public class ExtractFeatures {
         features.setLongAggIndex(longAggIndex);
         features.setPot(pot);
         features.setCost(cost);
-        features.setDecision(d);
+        features.setDecision(extractDecision(d));
         return features;
     }
 

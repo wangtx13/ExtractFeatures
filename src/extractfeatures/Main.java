@@ -27,7 +27,7 @@ public class Main {
 //        features.ExtractedAllFeatures();
 
         
-        String inputRootFilePath = "./data";
+        String inputRootFilePath = "./b_data";
         File inputRootFile = new File(inputRootFilePath);
         ArrayList<String> path = new ArrayList<>();
         if (!inputRootFile.isDirectory()) {
