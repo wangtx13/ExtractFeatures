@@ -605,7 +605,7 @@ public class ExtractFeatures {
             case "a_test":
                 return input / 2;
             case "holdem3":
-                return input / 3;
+                return input / 5;
             default:
                 return input;
         }
